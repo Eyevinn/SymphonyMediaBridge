@@ -176,6 +176,7 @@ set(FILES
         bridge/engine/RecordingRtpNackReceiveJob.cpp
         bridge/engine/RecordingRtpNackReceiveJob.h
         bridge/engine/RecordingSendEventJob.cpp
+        bridge/engine/RtpVideoRewriter.h
         bridge/engine/SendEngineMessageJob.h
         bridge/engine/SendPliJob.cpp
         bridge/engine/SendPliJob.h
@@ -200,7 +201,6 @@ set(FILES
         bridge/engine/VideoNackReceiveJob.h
         bridge/engine/DiscardReceivedVideoPacketJob.h
         bridge/engine/DiscardReceivedVideoPacketJob.cpp
-        bridge/engine/Vp8Rewriter.h
         bridge/engine/SetMaxMediaBitrateJob.h
         bridge/engine/SetMaxMediaBitrateJob.cpp
         bwe/BandwidthEstimator.cpp
@@ -211,6 +211,7 @@ set(FILES
         bwe/RateController.h
         codec/AudioLevel.cpp
         codec/AudioLevel.h
+        codec/H264Header.h
         codec/Opus.h
         codec/OpusDecoder.cpp
         codec/OpusDecoder.h
@@ -415,8 +416,7 @@ set(FILES
         webrtc/DataChannel.cpp
         webrtc/DataChannel.h
         webrtc/WebRtcDataStream.cpp
-        webrtc/WebRtcDataStream.h
-        )
+        webrtc/WebRtcDataStream.h)
 
 add_executable(smb
         ${FILES}
@@ -541,10 +541,11 @@ set(TEST_FILES
     test/legacyapi/ParserTest.cpp
     test/legacyapi/GeneratorTest.cpp
     test/bridge/EngineStreamDirectorTest.cpp
+    test/codec/H264HeaderTest.cpp
     test/codec/Vp8HeaderTest.cpp
     test/bridge/ActiveMediaListTest.cpp
     test/bridge/BarbellMessagesTest.cpp
-    test/bridge/Vp8RewriterTest.cpp
+    test/bridge/RtpVideoRewriterTest.cpp
     test/rtp/RtcpFeedbackTest.cpp
     test/bridge/PacketCacheTest.cpp
     test/rtp/RtcpNackBuilderTest.cpp

@@ -1,9 +1,11 @@
 #include "bridge/engine/VideoForwarderRewriteAndSendJob.h"
 #include "bridge/engine/EngineMessageListener.h"
 #include "bridge/engine/PacketCache.h"
+#include "bridge/engine/RtpVideoRewriter.h"
 #include "bridge/engine/SsrcInboundContext.h"
 #include "bridge/engine/SsrcOutboundContext.h"
-#include "bridge/engine/Vp8Rewriter.h"
+#include "codec/H264Header.h"
+#include "codec/Vp8Header.h"
 #include "transport/Transport.h"
 
 namespace bridge
@@ -40,7 +42,7 @@ void VideoForwarderRewriteAndSendJob::run()
         return;
     }
 
-    if (_outboundContext.rtpMap.format == RtpMap::Format::VP8RTX)
+    if (_outboundContext.rtpMap.format == RtpMap::Format::RTX)
     {
         logger::warn("%s rtx packet should not reach rewrite and send. ssrc %u, seq %u",
             "VideoForwarderRewriteAndSendJob",
@@ -66,9 +68,11 @@ void VideoForwarderRewriteAndSendJob::run()
         _mixerManager.onMessage(std::move(message));
     }
 
-    const bool isKeyFrame = codec::Vp8Header::isKeyFrame(rtpHeader->getPayload(),
-        codec::Vp8Header::getPayloadDescriptorSize(rtpHeader->getPayload(),
-            _packet->getLength() - rtpHeader->headerLength()));
+    const auto payloadSize = _packet->getLength() - rtpHeader->headerLength();
+    const auto payload = rtpHeader->getPayload();
+    const auto isKeyFrame = _outboundContext.rtpMap.format == RtpMap::Format::H264
+        ? codec::H264Header::isKeyFrame(payload, payloadSize)
+        : codec::Vp8Header::isKeyFrame(payload, codec::Vp8Header::getPayloadDescriptorSize(payload, payloadSize));
 
     const auto ssrc = rtpHeader->ssrc.get();
     if (ssrc != _outboundContext.originalSsrc)
@@ -116,18 +120,37 @@ void VideoForwarderRewriteAndSendJob::run()
     }
 
     uint32_t rewrittenExtendedSequenceNumber = 0;
-    if (!Vp8Rewriter::rewrite(_outboundContext,
-            *_packet,
-            _extendedSequenceNumber,
-            _transport.getLoggableId().c_str(),
-            rewrittenExtendedSequenceNumber,
-            isKeyFrame))
+
+    switch (_outboundContext.rtpMap.format)
     {
+    case RtpMap::Format::H264:
+        if (!RtpVideoRewriter::rewriteH264(_outboundContext,
+                *_packet,
+                _extendedSequenceNumber,
+                _transport.getLoggableId().c_str(),
+                rewrittenExtendedSequenceNumber,
+                isKeyFrame))
+        {
+            return;
+        }
+        break;
+    case RtpMap::Format::VP8:
+        if (!RtpVideoRewriter::rewriteVp8(_outboundContext,
+                *_packet,
+                _extendedSequenceNumber,
+                _transport.getLoggableId().c_str(),
+                rewrittenExtendedSequenceNumber,
+                isKeyFrame))
+        {
+            return;
+        }
+        break;
+    default:
         return;
     }
 
     rtpHeader->payloadType = _outboundContext.rtpMap.payloadType;
-    rewriteHeaderExtensions(rtpHeader, _senderInboundContext, _outboundContext);
+    RtpVideoRewriter::rewriteHeaderExtensions(rtpHeader, _senderInboundContext, _outboundContext);
 
     if (_outboundContext.packetCache.isSet() && _outboundContext.packetCache.get())
     {

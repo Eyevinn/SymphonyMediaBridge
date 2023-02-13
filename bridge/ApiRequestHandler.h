@@ -10,6 +10,11 @@
 #include "bridge/LegacyApiRequestHandler.h"
 #endif
 
+namespace config
+{
+class Config;
+}
+
 namespace api
 {
 struct AllocateEndpoint;
@@ -45,7 +50,8 @@ class ApiRequestHandler : public httpd::HttpRequestHandler, public ActionContext
 public:
     ApiRequestHandler(bridge::MixerManager& mixerManager,
         transport::SslDtls& sslDtls,
-        transport::ProbeServer& probeServer);
+        transport::ProbeServer& probeServer,
+        const config::Config& config);
     httpd::Response onRequest(const httpd::Request& request) override;
 
 private:
@@ -55,9 +61,6 @@ private:
 #endif
 
     httpd::Response callEndpointAction(RequestLogger&, const httpd::Request&);
-
-    using RequestAction = std::function<
-        httpd::Response(ActionContext*, RequestLogger&, const httpd::Request&, const utils::StringTokenizer::Token&)>;
 };
 
 } // namespace bridge

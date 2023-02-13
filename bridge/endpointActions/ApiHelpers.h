@@ -1,7 +1,7 @@
 #pragma once
-#include "ApiActions.h"
 #include "api/EndpointDescription.h"
 #include "bridge/RtpMap.h"
+#include "bridge/endpointActions/ApiActions.h"
 #include "bridge/engine/SimulcastStream.h"
 #include "bridge/engine/SsrcWhitelist.h"
 #include <mutex>
@@ -23,8 +23,12 @@ std::unique_lock<std::mutex> getConferenceMixer(ActionContext*,
     const std::string& conferenceId,
     bridge::Mixer*& outMixer);
 api::EndpointDescription::Candidate iceCandidateToApi(const ice::IceCandidate&);
-void addDefaultAudioProperties(api::EndpointDescription::Audio&);
-void addDefaultVideoProperties(api::EndpointDescription::Video&);
+void addDefaultAudioProperties(api::EndpointDescription::Audio& audioChannel);
+void addVp8VideoProperties(api::EndpointDescription::Video& videoChannel);
+void addH264VideoProperties(api::EndpointDescription::Video& videoChannel,
+    const std::string& profileLevelId,
+    const uint32_t packetizationMode);
+void addDefaultVideoProperties(api::EndpointDescription::Video& videoChannel);
 
 bridge::RtpMap makeRtpMap(const api::EndpointDescription::Audio& audio);
 bridge::RtpMap makeRtpMap(const api::EndpointDescription::Video& video,

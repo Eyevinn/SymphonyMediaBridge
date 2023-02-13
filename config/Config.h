@@ -114,6 +114,13 @@ public:
 
     CFG_PROP(uint32_t, mtu, 1480);
     CFG_PROP(uint32_t, ipOverhead, 20 + 14);
+
+    CFG_GROUP()
+    CFG_PROP(std::string, videoCodec, "VP8");
+    CFG_PROP(std::string, h264ProfileLevelId, "42001f");
+    CFG_PROP(uint32_t, h264PacketizationMode, 1);
+
+    CFG_GROUP_END(codec)
 };
 
 } // namespace config

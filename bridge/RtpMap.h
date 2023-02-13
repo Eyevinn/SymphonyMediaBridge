@@ -14,7 +14,8 @@ struct RtpMap
     enum class Format
     {
         VP8,
-        VP8RTX,
+        H264,
+        RTX,
         OPUS,
         EMPTY
     };
@@ -29,8 +30,12 @@ struct RtpMap
             payloadType = 100;
             sampleRate = 90000;
             break;
-        case Format::VP8RTX:
+        case Format::RTX:
             payloadType = 96;
+            sampleRate = 90000;
+            break;
+        case Format::H264:
+            payloadType = 101;
             sampleRate = 90000;
             break;
         case Format::OPUS:
@@ -70,7 +75,7 @@ struct RtpMap
 
     bool isEmpty() const { return format == Format::EMPTY; }
     bool isAudio() const { return format == Format::OPUS; }
-    bool isVideo() const { return format == Format::VP8 || format == Format::VP8RTX; }
+    bool isVideo() const { return format == Format::VP8 || format == Format::RTX || format == Format::H264; }
 
     Format format;
     uint8_t payloadType;

@@ -24,6 +24,7 @@ function(CheckGitRead git_hash)
 endfunction()
 
 function(CheckGitVersion)
+    execute_process(COMMAND git config --global --add safe.directory ${CMAKE_CURRENT_LIST_DIR})
     # Get the latest abbreviated commit hash of the working branch
     execute_process(
         COMMAND git log -1 --format=%h
